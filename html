@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فك الروابط</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #120024 0%, #1a0033 50%, #2d004d 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow-x: hidden;
+            padding: 40px 20px;
+        }
+
+        body::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        .background-glow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(147, 51, 234, 0.2) 0%, rgba(219, 39, 119, 0.1) 50%, transparent 100%);
+            z-index: -1;
+            pointer-events: none;
+            animation: pulseGlow 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.5; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(15, 5, 25, 0.7);
+            border: 2px solid transparent;
+            background-image: linear-gradient(rgba(15, 5, 25, 0.9), rgba(15, 5, 25, 0.9)), linear-gradient(45deg, #9333ea, #db2777, #9333ea);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 40px rgba(147, 51, 234, 0.25);
+            backdrop-filter: blur(20px);
+            animation: gradientBorder 6s linear infinite;
+            background-size: 200% 200%;
+            margin-bottom: 60px;
+        }
+
+        @keyframes gradientBorder {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(192, 132, 252, 0.3);
+            letter-spacing: -1px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 18px 25px;
+            background: rgba(25, 10, 40, 0.6);
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            border-radius: 16px;
+            color: #ffffff;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.4s ease;
+            box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.5);
+            text-align: left;
+            direction: ltr;
+        }
+
+        input[type="text"]:focus {
+            border-color: #db2777;
+            box-shadow: 0 0 20px rgba(219, 39, 119, 0.3), inset 0 4px 12px rgba(0, 0, 0, 0.5);
+            background: rgba(35, 15, 55, 0.8);
+        }
+
+        input[type="text"]::placeholder {
+            text-align: right;
+            direction: rtl;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #ffffff;
+            cursor: pointer;
+            background: linear-gradient(45deg, #7c3aed, #db2777);
+            background-size: 200% auto;
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3);
+            transition: all 0.4s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-action:hover {
+            background-position: right center;
+            box-shadow: 0 12px 25px rgba(219, 39, 119, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-action:disabled {
+            background: #2d1b40;
+            color: rgba(255, 255, 255, 0.3);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .loading-box {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .loading-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: pulseText 1.5s infinite alternate;
+        }
+
+        @keyframes pulseText {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 40px;
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-header {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #c084fc;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .code-container {
+            position: relative;
+            background: #090210;
+            border: 1px solid rgba(147, 51, 234, 0.4);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: inset 0 4px 20px rgba(0,0,0,0.8);
+        }
+
+        .code-block {
+            width: 100%;
+            height: 350px;
+            padding: 20px;
+            background: transparent;
+            border: none;
+            color: #a78bfa;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.95rem;
+            resize: none;
+            outline: none;
+            overflow-y: auto;
+            line-height: 1.6;
+            text-align: left;
+            direction: ltr;
+        }
+
+        .code-block::-webkit-scrollbar {
+            width: 8px;
+        }
+        .code-block::-webkit-scrollbar-thumb {
+            background: rgba(147, 51, 234, 0.5);
+            border-radius: 4px;
+        }
+
+        .btn-copy {
+            width: 100%;
+            margin-top: 15px;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            cursor: pointer;
+            background: linear-gradient(45deg, #db2777, #7c3aed);
+            background-size: 200% auto;
+            transition: all 0.4s ease;
+            box-shadow: 0 6px 15px rgba(219, 39, 119, 0.2);
+        }
+
+        .btn-copy:hover {
+            background-position: right center;
+            box-shadow: 0 10px 20px rgba(124, 58, 237, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .ladder-control {
+            position: fixed;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 45px;
+            background: rgba(15, 5, 25, 0.85);
+            border: 2px solid rgba(147, 51, 234, 0.5);
+            border-radius: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 0;
+            gap: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(147, 51, 234, 0.2);
+            z-index: 999;
+            backdrop-filter: blur(10px);
+        }
+
+        .ladder-rail {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #9333ea, #db2777, #9333ea);
+        }
+        .ladder-rail.left { left: 12px; }
+        .ladder-rail.right { right: 12px; }
+
+        .ladder-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #7c3aed, #db2777);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .ladder-btn:hover {
+            transform: scale(1.15);
+            background: linear-gradient(135deg, #db2777, #7c3aed);
+            box-shadow: 0 0 12px rgba(219, 39, 119, 0.6);
+        }
+
+        .ladder-step-line {
+            width: 16px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            z-index: 1;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background-glow"></div>
+
+    <div class="ladder-control">
+        <div class="ladder-rail left"></div>
+        <div class="ladder-rail right"></div>
+        <button class="ladder-btn" id="goUp" title="اطلع فوق">▲</button>
+        <div class="ladder-step-line"></div>
+        <div class="ladder-step-line"></div>
+        <button class="ladder-btn" id="goDown" title="انزل تحت عند الزر">▼</button>
+    </div>
+
+    <div class="container" id="mainContainer">
+        <h1>فك الروابط</h1>
+
+        <div class="input-group">
+            <input type="text" id="urlInput" placeholder="حط الرابط المشفر هنا الفخامة تنتظرك...">
+        </div>
+
+        <button class="btn-action" id="decodeBtn" disabled>افك لك الرابط الحين</button>
+
+        <div class="loading-box" id="loadingBox">
+            <div class="loading-text">انتظر شوي جالس أفك الشفرة ونرتب لك السكربت...</div>
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <div class="result-header">
+                <span>✦ السكربت الجاهز (Luau / Lua)</span>
+            </div>
+            <div class="code-container">
+                <textarea class="code-block" id="codeOutput" readonly></textarea>
+            </div>
+            <button class="btn-copy" id="copyBtn">نسخ السكربت الفخم</button>
+        </div>
+    </div>
+
+    <script>
+        const urlInput = document.getElementById('urlInput');
+        const decodeBtn = document.getElementById('decodeBtn');
+        const loadingBox = document.getElementById('loadingBox');
+        const resultSection = document.getElementById('resultSection');
+        const codeOutput = document.getElementById('codeOutput');
+        const copyBtn = document.getElementById('copyBtn');
+        const goUp = document.getElementById('goUp');
+        const goDown = document.getElementById('goDown');
+
+        urlInput.addEventListener('input', () => {
+            if (urlInput.value.trim() !== "") {
+                decodeBtn.removeAttribute('disabled');
+            } else {
+                decodeBtn.setAttribute('disabled', 'true');
+            }
+        });
+
+        decodeBtn.addEventListener('click', async () => {
+            const targetUrl = urlInput.value.trim();
+            if (!targetUrl) return;
+
+            resultSection.style.display = 'none';
+            loadingBox.style.display = 'block';
+            decodeBtn.setAttribute('disabled', 'true');
+
+            try {
+                const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl);
+                const response = await fetch(proxyUrl);
+                
+                if (!response.ok) throw new Error();
+                
+                const data = await response.json();
+                const content = data.contents;
+
+                setTimeout(() => {
+                    loadingBox.style.display = 'none';
+                    decodeBtn.removeAttribute('disabled');
+                    
+                    codeOutput.value = content;
+                    resultSection.style.display = 'block';
+                    
+                    window.scrollTo({
+                        top: document.body.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }, 2000);
+
+            } catch (error) {
+                setTimeout(() => {
+                    loadingBox.style.display = 'none';
+                    decodeBtn.removeAttribute('disabled');
+                    
+                    codeOutput.value = `-- [ عذراً: تعذر جلب البيانات من الرابط بشكل مباشر ]\n-- تأكد أن الرابط يخدم صيغة Raw صحيحة ومفتوحة العامة (Public)\n\nprint("BOKA HUB Verification Failed")`;
+                    resultSection.style.display = 'block';
+                }, 1500);
+            }
+        });
+
+        copyBtn.addEventListener('click', () => {
+            codeOutput.select();
+            codeOutput.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            
+            const originalText = copyBtn.innerText;
+            copyBtn.innerText = 'تم النسخ كفووو! ✓';
+            setTimeout(() => {
+                copyBtn.innerText = originalText;
+            }, 2000);
+        });
+
+        goUp.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        goDown.addEventListener('click', () => {
+            if (resultSection.style.display === 'block') {
+                copyBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                decodeBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+    </script>
+</body>
+</html>
